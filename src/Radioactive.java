@@ -19,7 +19,6 @@ public class Radioactive extends JFrame implements ActionListener {
     private final ImageIcon gameBtn2Img = new ImageIcon("src/resources/__button-2.png");
     private final ImageIcon gameBtn3Img = new ImageIcon("src/resources/__button-3.png");
     // game features
-    private Timer timer;
     private final ArrayList<Integer> gameSequence = new ArrayList<>();
     private final ArrayList<Integer> userSequence = new ArrayList<>();
 
@@ -131,28 +130,32 @@ public class Radioactive extends JFrame implements ActionListener {
     }
 
     private void game() {
-        timer = new Timer(2000, actionEvent -> showSequence());
+        Timer timer = new Timer(2000, actionEvent -> showSequence());
         timer.setRepeats(false);
         timer.start();
     }
 
-    public void showSequence() {
+    private void showSequence() {
         System.out.print("☢ SHOW SEQUENCE [");
-        for (Integer i : gameSequence) {
-            switch (i) {
-                case 1 -> gameBtn1.setIcon(gameBtn1Img);
-                case 2 -> gameBtn2.setIcon(gameBtn2Img);
-                case 3 -> gameBtn3.setIcon(gameBtn3Img);
+        for (Integer flash : gameSequence) {
+            switch (flash) {
+                case 1 -> animation(gameBtn1, gameBtn1Img);
+                case 2 -> animation(gameBtn2, gameBtn2Img);
+                case 3 -> animation(gameBtn3, gameBtn3Img);
             }
-            System.out.print(" " + i + " ");
-            timer = new Timer(1000, actionEvent -> {
-                gameBtn1.setIcon(gameBtn0Img);
-                gameBtn2.setIcon(gameBtn0Img);
-                gameBtn3.setIcon(gameBtn0Img);
-            });
-            timer.setRepeats(false);
-            timer.start();
+            System.out.print(" " + flash + " ");
         }
         System.out.print("]");
+    }
+
+    private void animation(JButton jButton, ImageIcon imageIcon) {
+        // flash the button
+        Timer timerON = new Timer(1000, actionEvent -> jButton.setIcon(imageIcon));
+        timerON.setRepeats(false);
+        timerON.start();
+        // off the button
+        Timer timerOFF = new Timer(2000, actionEvent -> jButton.setIcon(gameBtn0Img));
+        timerOFF.setRepeats(false);
+        timerOFF.start();
     }
 }
