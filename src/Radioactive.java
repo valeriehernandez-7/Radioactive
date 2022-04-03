@@ -1,5 +1,6 @@
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import java.util.*;
 
 public class Radioactive extends JFrame implements ActionListener {
@@ -18,12 +19,12 @@ public class Radioactive extends JFrame implements ActionListener {
     private final ImageIcon gameBtn2Img = new ImageIcon("src/resources/__button-2.png");
     private final ImageIcon gameBtn3Img = new ImageIcon("src/resources/__button-3.png");
     // game features
-    private boolean gameOver = false;
-    private ArrayList<Integer> gamePattern = new ArrayList<>();
-    private ArrayList<Integer> userPattern = new ArrayList<>();
+    private Timer timer;
+    private final ArrayList<Integer> gameSequence = new ArrayList<>();
+    private final ArrayList<Integer> userSequence = new ArrayList<>();
 
     public Radioactive() {
-        setIconImage(new ImageIcon("__icon.png").getImage());
+        setIconImage(new ImageIcon("src/resources/__icon.png").getImage());
         setTitle("Radioactive");
         setSize(600, 800);
         setResizable(false);
@@ -87,19 +88,20 @@ public class Radioactive extends JFrame implements ActionListener {
             play();
         } else if (source == gameBtn1) {
             System.out.println("▲ PINK (1) PRESSED");
-            userPattern.add(1);
+            userSequence.add(1);
         } else if (source == gameBtn2) {
             System.out.println("▲ PURPLE (2) PRESSED");
-            userPattern.add(2);
+            userSequence.add(2);
         } else if (source == gameBtn3) {
             System.out.println("▲ BLUE (3) PRESSED");
-            userPattern.add(3);
+            userSequence.add(3);
         }
     }
 
     private void play() {
-        gamePattern.clear();
-        userPattern.clear();
+        // clear stored sequences
+        gameSequence.clear();
+        userSequence.clear();
         System.out.println("▷ PLAY");
         // hide welcome screen components
         logo.setVisible(false);
@@ -109,19 +111,18 @@ public class Radioactive extends JFrame implements ActionListener {
         gameBtn1.setVisible(true);
         gameBtn2.setVisible(true);
         gameBtn3.setVisible(true);
-        // game pattern creation
-        generatePattern();
+        // game sequence creation
+        generateSequence();
         // game start
         game();
     }
 
-    private void generatePattern() {
-        int patternSize = getRandomInteger(3, 11);
-        System.out.println(patternSize);
-        for (int i = 1; i < patternSize + 1; i++) {
-            gamePattern.add(getRandomInteger(1, 4));
+    private void generateSequence() {
+        int sequenceSize = getRandomInteger(3, 11);
+        for (int i = 1; i < sequenceSize + 1; i++) {
+            gameSequence.add(getRandomInteger(1, 4));
         }
-        System.out.println("GAME PATTERN: " + gamePattern);
+        System.out.println("☢ GAME SEQUENCE " + gameSequence);
     }
 
     private int getRandomInteger(int origin, int bound) {
@@ -130,15 +131,28 @@ public class Radioactive extends JFrame implements ActionListener {
     }
 
     private void game() {
-        for (Integer i : gamePattern) {
+        timer = new Timer(2000, actionEvent -> showSequence());
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    public void showSequence() {
+        System.out.print("☢ SHOW SEQUENCE [");
+        for (Integer i : gameSequence) {
             switch (i) {
                 case 1 -> gameBtn1.setIcon(gameBtn1Img);
                 case 2 -> gameBtn2.setIcon(gameBtn2Img);
                 case 3 -> gameBtn3.setIcon(gameBtn3Img);
             }
-            gameBtn1.setIcon(gameBtn0Img);
-            gameBtn2.setIcon(gameBtn0Img);
-            gameBtn3.setIcon(gameBtn0Img);
+            System.out.print(" " + i + " ");
+            timer = new Timer(1000, actionEvent -> {
+                gameBtn1.setIcon(gameBtn0Img);
+                gameBtn2.setIcon(gameBtn0Img);
+                gameBtn3.setIcon(gameBtn0Img);
+            });
+            timer.setRepeats(false);
+            timer.start();
         }
+        System.out.print("]");
     }
 }
