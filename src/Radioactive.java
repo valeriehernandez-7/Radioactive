@@ -7,8 +7,8 @@ public class Radioactive extends JFrame implements ActionListener {
     // ui components
     private JButton playBtn, gameBtn1, gameBtn2, gameBtn3;
     private JLabel logo, background, frame;
-    private JDialog message;
     // resources
+    private final ImageIcon iconImg = new ImageIcon("src/resources/__icon.png");
     private final ImageIcon logoImg = new ImageIcon("src/resources/__logo.png");
     private final ImageIcon backgroundImg = new ImageIcon("src/resources/__background.png");
     private final ImageIcon frameImg = new ImageIcon("src/resources/__frame.png");
@@ -23,7 +23,8 @@ public class Radioactive extends JFrame implements ActionListener {
     private final ArrayList<Integer> userSequence = new ArrayList<>();
 
     public Radioactive() {
-        setIconImage(new ImageIcon("src/resources/__icon.png").getImage());
+        System.out.println("\n☢ --- Radioactive --- ☢");
+        setIconImage(iconImg.getImage());
         setTitle("Radioactive");
         setSize(600, 800);
         setResizable(false);
@@ -37,16 +38,16 @@ public class Radioactive extends JFrame implements ActionListener {
     private void getUIComponents() {
         // --- buttons ---
         // play button
-        playBtn = buttonSetup(playBtn0Img, playBtn1Img, 192, 428, true);
+        playBtn = buttonSetup(playBtn0Img, playBtn1Img, 192, 428, true, true);
         getContentPane().add(playBtn);
         // pink button
-        gameBtn1 = buttonSetup(gameBtn0Img, gameBtn1Img, 150, 270, false);
+        gameBtn1 = buttonSetup(gameBtn0Img, gameBtn0Img, 150, 270, false, false);
         getContentPane().add(gameBtn1);
         // purple button
-        gameBtn2 = buttonSetup(gameBtn0Img, gameBtn2Img, 303, 270, false);
+        gameBtn2 = buttonSetup(gameBtn0Img, gameBtn0Img, 303, 270, false, false);
         getContentPane().add(gameBtn2);
         // blue button
-        gameBtn3 = buttonSetup(gameBtn0Img, gameBtn3Img, 227, 404, false);
+        gameBtn3 = buttonSetup(gameBtn0Img, gameBtn0Img, 227, 404, false, false);
         getContentPane().add(gameBtn3);
         // --- labels ---
         // logo image
@@ -60,17 +61,27 @@ public class Radioactive extends JFrame implements ActionListener {
         getContentPane().add(background);
     }
 
-    private JButton buttonSetup(ImageIcon source, ImageIcon effect, int posX, int posY, boolean visible) {
+    private JButton buttonSetup(ImageIcon source, ImageIcon effect, int posX, int posY, boolean enabled, boolean visible) {
         JButton button = new JButton();
         button.setIcon(source);
+        button.setDisabledIcon(effect);
         button.setPressedIcon(effect);
         button.setRolloverIcon(effect);
         button.setBounds(posX, posY, button.getIcon().getIconWidth(), button.getIcon().getIconHeight());
         button.setBorder(BorderFactory.createEmptyBorder());
         button.setContentAreaFilled(false);
+        button.setEnabled(enabled);
         button.setVisible(visible);
         button.addActionListener(this);
         return button;
+    }
+
+    private void buttonEnabled(JButton button, ImageIcon source, ImageIcon effect) {
+        button.setIcon(source);
+        button.setDisabledIcon(source);
+        button.setPressedIcon(effect);
+        button.setRolloverIcon(effect);
+        button.setEnabled(true);
     }
 
     private JLabel labelSetup(ImageIcon source, int posX, int posY, boolean visible) {
@@ -80,20 +91,124 @@ public class Radioactive extends JFrame implements ActionListener {
         return label;
     }
 
+    private void animation(JButton jButton, ImageIcon imageIcon, int tick) {
+        int delay = 2000 * tick;
+        // flash the button
+        Timer timerON = new Timer(delay + 150, actionEvent -> jButton.setDisabledIcon(imageIcon));
+        timerON.setRepeats(false);
+        timerON.start();
+        // off the button
+        Timer timerOFF = new Timer(delay + 300, actionEvent -> jButton.setDisabledIcon(gameBtn0Img));
+        timerOFF.setRepeats(false);
+        timerOFF.start();
+    }
+
+    private void setEnabledUIComponents() {
+        buttonEnabled(gameBtn1, gameBtn0Img, gameBtn1Img);
+        buttonEnabled(gameBtn2, gameBtn0Img, gameBtn2Img);
+        buttonEnabled(gameBtn3, gameBtn0Img, gameBtn3Img);
+    }
+
+    private boolean replay() {
+        boolean replay = false;
+        int input = JOptionPane.showConfirmDialog(this, "Do you need to replay the sequence?",
+                "Radioactive", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, iconImg);
+        if (input == 0) {
+            replay = true;
+        }
+        return replay;
+    }
+
+    private boolean gameOver(String message) {
+        boolean play = false;
+        int input = JOptionPane.showConfirmDialog(this, message + "Do you want to play another sequence?",
+                "Radioactive", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, iconImg);
+        if (input == 0) {
+            play = true;
+        }
+        return play;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
         if (source == playBtn) {
             play();
         } else if (source == gameBtn1) {
-            System.out.println("▲ PINK (1) PRESSED");
+            System.out.print(" 1 ");
             userSequence.add(1);
+            checkSequence(userSequence.size() - 1, 1);
         } else if (source == gameBtn2) {
-            System.out.println("▲ PURPLE (2) PRESSED");
+            System.out.print(" 2 ");
             userSequence.add(2);
+            checkSequence(userSequence.size() - 1, 2);
         } else if (source == gameBtn3) {
-            System.out.println("▲ BLUE (3) PRESSED");
+            System.out.print(" 3 ");
             userSequence.add(3);
+            checkSequence(userSequence.size() - 1, 3);
+        }
+    }
+
+    private int getRandomInteger(int origin, int bound) {
+        Random random = new Random();
+        return random.nextInt(origin, bound);
+    }
+
+    private void generateSequence() {
+        int sequenceSize = getRandomInteger(3, 11);
+        for (int i = 1; i < sequenceSize + 1; i++) {
+            gameSequence.add(getRandomInteger(1, 4));
+        }
+    }
+
+    private void showSequence() {
+        System.out.print("☢ GAME SEQUENCE ");
+        int tick = 0;
+        for (Integer flash : gameSequence) {
+            tick++;
+            switch (flash) {
+                case 1 -> animation(gameBtn1, gameBtn1Img, tick);
+                case 2 -> animation(gameBtn2, gameBtn2Img, tick);
+                case 3 -> animation(gameBtn3, gameBtn3Img, tick);
+            }
+            System.out.print(" " + flash + " ");
+        }
+        System.out.println("");
+        Timer showReplay = new Timer(tick * 2100, actionEvent -> {
+            if (replay()) {
+                Timer repeatSequence = new Timer(1000, aE -> showSequence());
+                repeatSequence.setRepeats(false);
+                repeatSequence.start();
+            } else {
+                setEnabledUIComponents();
+                getUserSequence();
+            }
+        });
+        showReplay.setRepeats(false);
+        showReplay.start();
+    }
+
+    private void getUserSequence() {
+        System.out.print("☢ USER SEQUENCE ");
+    }
+
+    private void checkSequence(int index, int value) {
+        if (gameSequence.get(index) != value) {
+            System.out.println("\n☢ DEFEAT\n☢ -------- ☢ ------- ☢");
+            if (gameOver("You lost! ")) {
+                this.dispose();
+                Radioactive radioactive = new Radioactive();
+            } else {
+                this.dispose();
+            }
+        } else if (gameSequence.size() == userSequence.size()) {
+            System.out.println("\n☢ VICTORY\n☢ -------- ☢ ------- ☢");
+            if (gameOver("You won! ")) {
+                this.dispose();
+                Radioactive radioactive = new Radioactive();
+            } else {
+                this.dispose();
+            }
         }
     }
 
@@ -113,49 +228,8 @@ public class Radioactive extends JFrame implements ActionListener {
         // game sequence creation
         generateSequence();
         // game start
-        game();
-    }
-
-    private void generateSequence() {
-        int sequenceSize = getRandomInteger(3, 11);
-        for (int i = 1; i < sequenceSize + 1; i++) {
-            gameSequence.add(getRandomInteger(1, 4));
-        }
-        System.out.println("☢ GAME SEQUENCE " + gameSequence);
-    }
-
-    private int getRandomInteger(int origin, int bound) {
-        Random random = new Random();
-        return random.nextInt(origin, bound);
-    }
-
-    private void game() {
         Timer timer = new Timer(2000, actionEvent -> showSequence());
         timer.setRepeats(false);
         timer.start();
-    }
-
-    private void showSequence() {
-        System.out.print("☢ SHOW SEQUENCE [");
-        for (Integer flash : gameSequence) {
-            switch (flash) {
-                case 1 -> animation(gameBtn1, gameBtn1Img);
-                case 2 -> animation(gameBtn2, gameBtn2Img);
-                case 3 -> animation(gameBtn3, gameBtn3Img);
-            }
-            System.out.print(" " + flash + " ");
-        }
-        System.out.print("]");
-    }
-
-    private void animation(JButton jButton, ImageIcon imageIcon) {
-        // flash the button
-        Timer timerON = new Timer(1000, actionEvent -> jButton.setIcon(imageIcon));
-        timerON.setRepeats(false);
-        timerON.start();
-        // off the button
-        Timer timerOFF = new Timer(2000, actionEvent -> jButton.setIcon(gameBtn0Img));
-        timerOFF.setRepeats(false);
-        timerOFF.start();
     }
 }
